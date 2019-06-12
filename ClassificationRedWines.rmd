@@ -1,0 +1,463 @@
+---
+title: "Understading classication Red Wines"
+author: "David Braga"
+date: "27-05-2019"
+output: html_document
+---
+
+I evaluated some external options and the Udacity indications with some examples of masses of data. Because of the guidance of the tutor, indicating that it would be very interesting to analyze a set of data that I did not understand so well, I opted for the mass of red wines. This mass has the physiochemical properties of 1599 red wines.
+The link used data from https://s3.amazonaws.com/udacity-hosted-downloads/ud651/wineQualityReds.csv
+
+========================================================
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# Carregue aqui todos os pacotes utilizados 
+# na sua análise realizada neste arquivo fonte.
+
+# Note que o parâmetro "echo" foi definido como FALSE neste código.
+# Isso previne que o código apresente resultados formatados em HTML.
+# Você deve definir echo=FALSE para todos os blocos de código no seu arquivo.
+#install.packages("corrplot")
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+library(grid)
+library(lattice)
+library(Simpsons)
+library(GGally)
+library(pander)
+library(corrplot)
+```
+
+## To begin the analysis on red wines, I will first navigate through the information already existing and in order to understand which variables may be relevant.  
+
+```{r echo=FALSE, Load_the_Data}
+#Loading the csv 
+wineRed <- read.csv('wineQualityReds.csv')
+```
+
+## Structure DataFrame
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+str(wineRed)
+```
+
+## Summarize DataFrame
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+summary(wineRed)
+```
+
+# Unvariables Plots
+
+I analysed and I believe that the best variable for classification scalable of wines is column quality, type integer.
+So, I Added a new column, for qualification in 3 types of wines possibles, bad, good and excellent.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+#Transforming to a Factor
+wineRed$quality <- factor(wineRed$quality, ordered = T)
+
+#Creating a Rating of classification
+wineRed$rating <- ifelse(wineRed$quality < 3, 'bad', ifelse(wineRed$quality < 7, 'good', 'excellent'))
+
+#Apply ordering in the dataset
+wineRed$rating <- ordered(wineRed$rating,levels = c('bad', 'good', 'excellent'))
+
+```
+
+
+My initial idea is to visualize the variable rating in order for understand them.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = wineRed, aes(x = rating)) + geom_bar(width = 1, color = 'black',fill = I('red'))
+```
+
+For best understing I researched and read about Red Wine and your feature. On link http://vidaevinho.com/estilos-de-vinho-2/ I found some informations where help me know what mapper and correlate.
+
+How the base already had many indicators, I don't needed to correlate 2 or more variables.
+
+I ploted the informations from 6 features for analyse.
+
+
+The First feature was acidity:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+grid.arrange(ggplot(wineRed, aes( x = 1, y = fixed.acidity ) ) + 
+geom_jitter(alpha = 0.2 ) +
+geom_boxplot(alpha = 0.2, color = 'red' ) +
+scale_y_continuous(lim = c(4,14)),
+ggplot(data = wineRed, aes(x = fixed.acidity)) +
+geom_histogram(binwidth = 1, color = 'red',fill = I('orange')) + 
+scale_x_continuous(lim = c(1,18)),ncol = 2)
+```
+
+The second feature was citricity, where show peaks between 0.2 and 0.3:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+grid.arrange(ggplot(wineRed, aes( x = 1, y = citric.acid )) + 
+geom_jitter(alpha = 0.1 ) +
+geom_boxplot(alpha = 0.2, color = 'red' ),
+ggplot(data = wineRed, aes(x = citric.acid)) +
+geom_histogram(binwidth = 0.08, color = 'red',fill = I('orange')) +
+scale_x_continuous(breaks = seq(0,1,0.1), lim = c(0,1)), ncol = 2)
+```
+
+Following some articles (http://www.artwine.com.br/artigos-e-reportagens/423/falhas-e-defeitos-mais-comuns-em-vinhos-um-guia) and others studies about classification Red Wine, I continued without understing what was volatility acidity, but I needed to know, for to continue next steps.I found the median in around 8 with high concentration.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+grid.arrange(ggplot(wineRed, aes( x = 1, y = volatile.acidity ) ) + 
+geom_jitter(alpha = 0.1 ) +
+geom_boxplot(alpha = 0.2, color = 'red' ) +
+scale_y_continuous(lim = c(0,1)),
+ggplot(data = wineRed, aes(x = volatile.acidity)) +
+geom_histogram(binwidth = 0.05, color = 'red',fill = I('orange')) +
+scale_x_continuous(lim = c(0,1)), ncol = 2)
+```
+
+Validating threeth feature, sugar:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+grid.arrange(ggplot(wineRed, aes( x = 1, y = residual.sugar )) + 
+geom_jitter(alpha = 0.1 ) +
+geom_boxplot(alpha = 0.2, color = 'red' ) +
+scale_y_continuous(lim = c(1,10)),
+ggplot(data = wineRed, aes(x = residual.sugar)) +
+geom_histogram(binwidth = 0.1, color = 'red',fill = I('orange')) +
+scale_x_continuous(lim = c(1,10)), ncol = 2)
+```
+
+Validating fourth feature, body or density:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+grid.arrange(ggplot(wineRed, aes( x = 1, y = density)) + 
+geom_jitter(alpha = 0.1 ) +
+geom_boxplot(alpha = 0.2, color = 'red' ),
+ggplot(data = wineRed, aes(x = density)) +
+geom_histogram(binwidth = 0.001, color = 'red',fill = I('orange')), ncol = 2)
+```
+
+Validating fiveth feature, Ph:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+grid.arrange(ggplot(wineRed, aes( x = 1, y = pH)) + 
+geom_jitter(alpha = 0.1 ) +
+geom_boxplot(alpha = 0.2, color = 'red' ),
+ggplot(data = wineRed, aes(x = pH)) +
+geom_histogram(binwidth = 0.1, color = 'red',fill = I('orange')), ncol = 2)
+```
+
+Validating sixth feature, alcohol, it has relatively less outliers, was possbile found biggest peaks and distribution.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+grid.arrange(ggplot(wineRed, aes( x = 1, y = alcohol)) + 
+geom_jitter(alpha = 0.1 ) +
+geom_boxplot(alpha = 0.2, color = 'red' ) +
+scale_y_continuous(lim = c(8,14)),
+ggplot(data = wineRed, aes(x = alcohol)) +
+geom_histogram(binwidth = 0.1, color = 'red',fill = I('orange')) +
+scale_x_continuous(lim = c(8,14)), ncol = 2)
+```
+
+# Análise Univariada
+
+### Qual é a estrutura do conjunto de dados?
+
+There are 1599 lines, containing 12 attributes. Was added more one column, called rating, then, in total so 13 columns. In these attributes, are contained all the information that help to compose the characteristics for the classification of the wine. 
+
+### Quais são os principais atributos de interesse deste conjunto de dados?
+
+My focused was about Rating, where search to classifier for result quality of wine.
+
+### Quais outros atributos você acha que podem lhe auxiliar na investigação destes atributos de interesse?
+
+Following my previous logic, I think that six features help me on mapping. Acidity, Citricity, Sugar, Density, Ph and Alcohol.
+
+### Você criou novas variáveis a partir dos atributos existentes no conjunto de dados?
+
+Yes, I add atribute Rating, detailing 3 levels, Bad, Good and Excellent.
+
+### Dos atributos investigados, distribuições incomuns foram encontradas? Você aplicou operações nos dados para limpá-los, ajustá-los ou mudar a forma dos dados? Se sim, por quê?
+
+I read about some tecniches, I tryed others plots, but in my understing, the BoxPlot and histogram resolved without many adjusts. I followed some links how:
+
+https://rstudio-pubs-static.s3.amazonaws.com/258276_7dee24b4a1474558a0f8675db6609d2b.html
+
+
+# Seção de Gráficos Bivariados
+
+How language R, is not my deep knowledge, I researched some sobjects in google. I Found the link: https://github.com/ppkn/udacity-wine
+I read the article and project, viewed your file .HTML, and used for next steps.
+
+Now I removed the columns, x and rating, for apply method mutate and analyse in friendly format. 
+
+```{r}
+table_wines <- cor(
+  wineRed %>%
+    dplyr::select(-X) %>%
+    dplyr::select(-rating) %>%
+    mutate(
+      quality = as.numeric(quality)
+    )
+)
+emphasize.strong.cells(which(abs(table_wines) > .3 & table_wines != 1, arr.ind = TRUE))
+pandoc.table(table_wines)
+```
+
+After the visualizations, I noticed some variations that can change some values. 
+
+PH, because of your relation direct on acidity where can to impact others features, density and alcohol.
+
+For undesting, I ploted all features in box plots summarized. 
+
+
+# FIXED.ACIDITY
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = wineRed, aes(x = quality, y = fixed.acidity)) +
+geom_jitter( alpha = .3) +
+geom_boxplot(alpha = .6,color = 'blue') +
+stat_summary(fun.y = "mean", geom = "point", color = "orange", shape = 10, size = 4)
+```
+
+
+# VOLATILE.ACIDITY
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data=wineRed, aes(x = quality, y = volatile.acidity)) +
+geom_jitter( alpha = .3) +
+geom_boxplot(alpha = .6,color = 'blue') +
+stat_summary(fun.y = "mean", geom = "point", color = "orange", shape = 10, size = 4)
+```
+
+# CITRIC.ACID
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data=wineRed, aes(x=quality, y=citric.acid)) +
+geom_jitter( alpha = .3) +
+geom_boxplot(alpha = .5,color = 'blue') +
+stat_summary(fun.y = "mean", geom = "point", color = "orange", shape = 8, size = 4)
+```
+
+
+# RESIDUAL.SUGAR
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data=wineRed, aes(x=quality, y=residual.sugar)) +
+geom_jitter( alpha = .3) +
+geom_boxplot(alpha = .5,color = 'blue') +
+scale_y_continuous(lim = c(0,5)) +
+stat_summary(fun.y = "mean", geom = "point", color = "orange", shape = 8, size = 4)
+```
+
+# DENSITY
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data=wineRed, aes(x=quality, y=density)) +
+geom_jitter( alpha = .3) +
+geom_boxplot(alpha = .5,color = 'blue') +
+stat_summary(fun.y = "mean", geom = "point", color = "orange", shape = 8, size = 4)
+```
+
+
+# PH
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data=wineRed, aes(x=quality, y=pH)) +
+geom_jitter( alpha = .3) +
+geom_boxplot(alpha = .5,color = 'blue') +
+stat_summary(fun.y = "mean", geom = "point", color = "orange", shape = 8, size = 4)
+```
+
+Now, I saw some things about strong influence of PH in others variables. I apply scale for mapper your strongest oscilations. Using Log for trace the variance:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = wineRed, aes(x = fixed.acidity, y = pH)) +
+geom_point(alpha = 0.3) +
+scale_x_log10(breaks=seq(5,15,1)) +
+xlab("Fixed Acidity") +
+geom_smooth(method="lm")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = wineRed, aes(x = volatile.acidity, y = pH)) +
+geom_point(alpha = 0.3) +
+scale_x_log10(breaks=seq(.1,1,.1)) +
+xlab("Volatile Acidity") +
+geom_smooth(method="lm")
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = subset(wineRed, citric.acid > 0), aes(x = citric.acid, y = pH)) +
+geom_point(alpha = 0.3) +
+scale_x_log10() +
+xlab("Citric Acid") +
+geom_smooth(method="lm")
+```
+
+In summary, the greatest influence is that of pH and its influence with acidity is the one that was the most varuation. Consequently the lower the pH, the more acid the wine can be.
+
+
+# Análise Bivariada
+
+### Discuta sobre alguns dos relacionamentos observados nesta parte da investigação. Como os atributos de interesse variaram no conjunto de dados?
+
+I saw differents things, my more surprise was impact from pH, for quality and until same type wine. I also found it interesting that higher alcohol content had a higher probability of getting a good quality score.
+
+### Você observou algum relacionamento interessante entre os outros atributos (os que não são de interesse)?
+
+I thougth that sugar was more strongest feature, but sugar did not the problem. I needed to pay attention to density and pH.
+
+### Qual foi o relacionamento mais forte encontrado?
+
+No doubts was pH and your influence in others, your relationship with volatile.acidity, fixed.acidity and citric.acid, showed the main points for change features from wine.
+
+# Seção de Gráficos Multivariados
+
+# Análise Multivariada
+
+After, analyse about pH, started to test the alcohol, because in my studies, quantity can influence density that influence quality directly. I ploted a graph mapper density and your co relation in the quality.
+
+```{r echo=FALSE, Multivariate_Plots}
+ggplot(data = wineRed,aes(y = density, x = alcohol,color = quality)) +
+geom_point(alpha = 0.8, size = 1) +
+geom_smooth(method = "lm", se = FALSE,size=1)  +
+scale_color_brewer(type='seq',guide=guide_legend(title='Quality'))
+```
+
+
+In the graph for density, not stayed clear the real influence about quality, for undestanding, detailed added the property sulphates, for read more informations.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = wineRed, aes(y = sulphates, x = alcohol, color = quality)) +
+geom_point(alpha = 0.8, size = 1) +
+geom_smooth(method = "lm", se = FALSE,size=1)  +
+scale_y_continuous(limits=c(0.3,1.5)) +
+facet_wrap(~rating) +
+scale_color_brewer(type='seq',guide=guide_legend(title='Quality'))
+```
+
+So, the few feature, but important feature is the co relation between alcohol and sulphates, the graph showed that wines with more quality had most indexes of sulphates.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = wineRed,aes(y = volatile.acidity, x = alcohol, color = quality)) +
+geom_point(alpha = 0.8, size = 1) +
+geom_smooth(method = "lm", se = FALSE,size=1)  +
+facet_wrap(~rating) +
+scale_color_brewer(type='seq',guide=guide_legend(title='Quality'))
+```
+
+
+So, Volatile acid has the opposite effect. With less concentration of volatile acid and higher concentration of alcohol seems to produce better wines.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = wineRed,aes(y = pH, x = alcohol,color = quality)) +
+geom_point(alpha = 0.8, size = 1) +
+geom_smooth(method = "lm", se = FALSE,size=1)  +
+facet_wrap(~rating) +
+scale_color_brewer(type='seq',guide=guide_legend(title='Quality'))
+```
+
+Here also, low pH and high Alcohol percentage seems to produce better wines, this is already tested because influence acidity.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = wineRed,aes(y = residual.sugar, x = alcohol,color = quality)) +
+geom_point(alpha = 0.8, size = 1) +
+geom_smooth(method = "lm", se = FALSE,size=1)  +
+facet_wrap(~rating) +
+scale_color_brewer(type='seq',guide=guide_legend(title='Quality'))
+```
+
+The feature sugar, demonstrated how really not has influence about quality. No changes.
+
+
+Finishing, below, I ploted using ACID, where is the most evidence and feature that showed how better wines so produced.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = wineRed,aes(y = citric.acid, x = volatile.acidity,color = quality)) +
+geom_point(alpha = 0.8, size = 1) +
+geom_smooth(method = "lm", se = FALSE,size=1)  +
+facet_wrap(~rating) +
+scale_color_brewer(type='seq',guide=guide_legend(title='Quality'))
+```
+
+
+Higher Citric Acid and low Volatile Acid produce better Wines.
+
+
+### Discuta sobre os relacionamentos observados nesta parte da investigação. Quais atributos que fortaleceram os demais na observação das variáveis de interesse?
+
+I found big relationships between, alcohol and sulphates, pH and acidity. In these co relations was possible undestand good part of importants features that so really relevant. I believe that the classification has very sensibility when worked in these 4 features and your percentages.
+
+### Interações surpreendentes e/ou interessantes foram encontradas entre os atributos?
+
+For my surprise, I always thougth that sugar was the higher component from wine, really modife the type of wine and your features. But, sugar haven't nothing influence in quality directly. Obviously speaking in quantities correct.
+
+### OPCIONAL: Modelos foram criados usando este conjunto de dados? Discuta sobre os pontos fortes e as limitações do seu modelo.
+
+------
+
+# Gráficos Finais e Sumário
+
+So for final section, I chose the next three graphs and I gave short descriptions about what I discovered.
+
+### Description One
+
+In my understanding the alcohol and sulphates had most influence in the analyzes. The graph below, shows gradually that the greater the balance of alcohol and sulfates the better the direct quality of the wine. 
+
+### Plot 1
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = wineRed,aes(y = sulphates, x = alcohol,color = quality)) +
+geom_point(alpha = 0.8, size = 1) +
+geom_smooth(method = "lm", se = FALSE,size=1)  +
+scale_y_continuous(limits=c(0.3,1.5)) +
+ylab("Sulphate") +
+xlab("Alcohol Percentage") +
+scale_color_brewer(type='seq',guide=guide_legend(title='Quality')) +
+ggtitle("Alcohol and sulphates combined")
+```
+
+### Description Two
+
+The next plot, showed the distribuition of alcohol into some features, and in isolation the alcohol change strongest and directly the quality of wines.
+
+### Plot 2
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data=wineRed, aes(y=alcohol, x=quality)) + 
+geom_jitter(alpha = .3)  +
+geom_boxplot(alpha = .5,color = 'blue') +
+stat_summary(fun.y = "mean", geom = "point", color = "orange", shape = 8, size = 4) +
+xlab("Quality") +
+ggtitle("Influence of alcohol on wine quality")
+```
+
+### Description Three
+
+In context, the threeth plot is showed pH that has co relation with acidity and can change strongest the quality of wine. 
+
+### Plot 3
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data=wineRed, aes(y=pH, x=quality)) + 
+geom_jitter(alpha = .3)  +
+geom_boxplot(alpha = .5,color = 'blue') +
+stat_summary(fun.y = "mean", geom = "point", color = "orange", shape = 8, size = 4) +
+xlab("Quality") +
+ggtitle("Influence pH in Acidity")
+```
+
+
+# Reflexão
+
+My main focus was to know the variables that exist for quality classification. There are no items that could be of greater interest, such as that they had greater influence without classification results.
+
+Following some indications and separating over the wine analysis, the differences in quality variables for the univariate relationships between them, then within their efforts in comparison to the results, where they were able to make analogies in realistic and comparative thoughts with some external studies. These were the ones that altered the quality of the wine and the percentages of alcohol, sulfate and acid and thus their correlations consequently.
+
+I had a hard time not knowing the resources of the "R" language. I also had difficulties in using the information contained in a larger part of the data are in average, making it difficult to access not to emphasize the analyzes.
+
+In short, I was able to understand the data and a structure of the dataset, I was unable to produce an image that was not functional, but I believe it was the process of analysis and the results of the study and work processes.I liked very much of experience, really leaned of course. 
+
+Thank you Udacity!!
