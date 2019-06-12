@@ -8,6 +8,11 @@ output: html_document
 I evaluated some external options and the Udacity indications with some examples of masses of data. Because of the guidance of the tutor, indicating that it would be very interesting to analyze a set of data that I did not understand so well, I opted for the mass of red wines. This mass has the physiochemical properties of 1599 red wines.
 The link used data from https://s3.amazonaws.com/udacity-hosted-downloads/ud651/wineQualityReds.csv
 
+I had few experience using language R and apply advanced functions, because this I research, and getted some examples for help me the mount and build my logic, based in fonts, examples from Udacity and others colleagues.
+
+Font 1 : https://github.com/ppkn/udacity-wine
+Font 2 : In My GitHub, I uploaded the file .HTML from project Daniel Pipkin. https://github.com/davidbraga28/analyzeRedWinesUdacity/blob/master/Projeto_Referencia_GitHub.html
+
 ========================================================
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
